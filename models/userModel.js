@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
       requied: true,
     },
     address: {
-      type: String,
+      type: {},
       requied: true,
     },
     role: {

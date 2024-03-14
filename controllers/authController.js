@@ -1,3 +1,4 @@
+import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import { comparePassword, hashPassword } from "../utils/authPasswordHelper.js";
 import JWT from "jsonwebtoken";
@@ -202,6 +203,81 @@ export const forgetPasswordController = async (req, res) => {
     });
   }
 };
+
+// Update profile
+
+export const updateProfileController = async (req, res) => {
+  try {
+    const { name, email, password, address, phone } = req.body;
+    const user = await userModel.findById(req.user._id);
+
+    if (password && password.length < 6) {
+      return res.json({
+        error: "Password is required and greater than 6 character",
+      });
+    }
+    const hashed = password ? await hashPassword(password) : undefined;
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        name: name || user.name,
+        email: email || user.email,
+        phone: phone || user.phone,
+        password: hashed || user.password,
+        address: address || user.address,
+      },
+      { new: true }
+    );
+    return res.status(200).send({
+      success: true,
+      message: "Profile Updated Successfully",
+      updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send({
+      success: false,
+      message: "Error while updating",
+    });
+  }
+};
+
+// GET USER ORDER CONTROLLER
+
+export const getUserOrderController = async (req, res) => {
+  try {
+    const orders = await orderModel
+      .find({ buyer: req.user._id })
+      .populate("products", "-photo") // Use the field name in your schema, not the model name
+      .populate("buyer", "name")
+      .sort({ createdAt: 1 });
+    return res.json(orders);
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: "Error while getting orders controller",
+    });
+  }
+};
+
+// GET ALL ADMIN ORDERS
+
+export const getAllAdminOrderController = async (req, res) => {
+  try {
+    const orders = await orderModel
+      .find({})
+      .populate("products", "-photo")
+      .populate("buyer", "name")
+      .sort({ createdAt: -1 });
+    return res.json(orders);
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: "Error while getting orders controller",
+    });
+  }
+};
+
 // test
 
 export const test = (req, res) => {

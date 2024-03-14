@@ -67,7 +67,7 @@ export const getAllCategoryController = async (req, res) => {
     const category = await categoryModel.find({});
     if (category.length == 0) {
       return res.status(200).send({
-        success: true,
+        success: false,
         message: "No category exist",
       });
     }
